@@ -115,6 +115,7 @@
       if (keyCode === wysihtml5.SPACE_KEY || keyCode === wysihtml5.ENTER_KEY) {
         that.parent.fire("newword:composer");
       }
+      that.parent.fire("keyup:composer");
     });
 
     this.parent.observe("paste:composer", function() {
