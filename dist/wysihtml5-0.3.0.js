@@ -4759,20 +4759,20 @@ wysihtml5.dom.parse = (function() {
       element = elementOrHtml;
     }
     
-    while (element.firstChild) {
-      firstChild  = element.firstChild;
-      element.removeChild(firstChild);
-      newNode = _convert(firstChild, cleanUp);
-      if (newNode) {
-        fragment.appendChild(newNode);
-      }
-    }
+    // while (element.firstChild) {
+    //   firstChild  = element.firstChild;
+    //   element.removeChild(firstChild);
+    //   newNode = _convert(firstChild, cleanUp);
+    //   if (newNode) {
+    //     fragment.appendChild(newNode);
+    //   }
+    // }
     
-    // Clear element contents
-    element.innerHTML = "";
+    // // Clear element contents
+    // element.innerHTML = "";
     
-    // Insert new DOM tree
-    element.appendChild(fragment);
+    // // Insert new DOM tree
+    // element.appendChild(fragment);
     
     return isString ? wysihtml5.quirks.getCorrectInnerHTML(element) : element;
   }
