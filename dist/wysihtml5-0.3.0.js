@@ -8165,11 +8165,16 @@ wysihtml5.views.View = Base.extend(
       // Only do the auto linking by ourselves when the browser doesn't support auto linking
       // OR when he supports auto linking but we were able to turn it off (IE9+)
       if (!supportsAutoLinking || (supportsAutoLinking && supportsDisablingOfAutoLinking)) {
-        this.parent.observe("newword:composer", function() {
-          that.selection.executeAndRestore(function(startContainer, endContainer) {
-            dom.autoLink(endContainer.parentNode);
-          });
-        });
+         //this.parent.observe("newword:composer", function() {
+          // DMB: I'm not exactly sure what this does, but these 3
+          // lines are causing blur to be invoked which causes all
+          // sorts of problems if you have a blur event listener on an
+          // element in the iframe/editor.
+          // that.selection.executeAndRestore(function(startContainer,
+          // endContainer) { dom.autoLink(endContainer.parentNode);
+          // });
+        //});
+       
         
         dom.observe(this.element, "blur", function() {
           dom.autoLink(that.element);
@@ -8264,7 +8269,8 @@ wysihtml5.views.View = Base.extend(
       this.undoManager = new wysihtml5.UndoManager(this.parent);
     }
   });
-})(wysihtml5);(function(wysihtml5) {
+})(wysihtml5);
+(function(wysihtml5) {
   var dom             = wysihtml5.dom,
       doc             = document,
       win             = window,
