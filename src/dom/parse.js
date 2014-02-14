@@ -88,14 +88,14 @@ wysihtml5.dom.parse = (function() {
       element = elementOrHtml;
     }
     
-    // while (element.firstChild) {
-    //   firstChild  = element.firstChild;
-    //   element.removeChild(firstChild);
-    //   newNode = _convert(firstChild, cleanUp);
-    //   if (newNode) {
-    //     fragment.appendChild(newNode);
-    //   }
-    // }
+    while (element.firstChild) {
+      firstChild = element.firstChild;
+      newNode = _convert(firstChild, cleanUp);
+      element.removeChild(firstChild);
+      if (newNode) {
+        fragment.appendChild(newNode);
+      }
+    }
     
     // // Clear element contents
     // element.innerHTML = "";
@@ -110,9 +110,11 @@ wysihtml5.dom.parse = (function() {
     var oldNodeType     = oldNode.nodeType,
         oldChilds       = oldNode.childNodes,
         oldChildsLength = oldChilds.length,
-        newNode,
         method          = NODE_TYPE_MAPPING[oldNodeType],
-        i               = 0;
+        i               = 0,
+        fragment,
+        newNode,
+        newChild;
     
     newNode = method && method(oldNode);
     
@@ -129,10 +131,13 @@ wysihtml5.dom.parse = (function() {
     
     // Cleanup senseless <span> elements
     if (cleanUp &&
-        newNode.childNodes.length <= 1 &&
         newNode.nodeName.toLowerCase() === DEFAULT_NODE_NAME &&
-        !newNode.attributes.length) {
-      return newNode.firstChild;
+        (!newNode.childNodes.length || !newNode.attributes.length)) {
+      fragment = newNode.ownerDocument.createDocumentFragment();
+      while (newNode.firstChild) {
+        fragment.appendChild(newNode.firstChild);
+      }
+      return fragment;
     }
     
     return newNode;
@@ -141,7 +146,6 @@ wysihtml5.dom.parse = (function() {
   function _handleElement(oldNode) {
     var rule,
         newNode,
-        endTag,
         tagRules    = currentRules.tags,
         nodeName    = oldNode.nodeName.toLowerCase(),
         scopeName   = oldNode.scopeName;
@@ -357,8 +361,17 @@ wysihtml5.dom.parse = (function() {
     }
   }
   
+  var INVISIBLE_SPACE_REG_EXP = /\uFEFF/g;
   function _handleText(oldNode) {
-    return oldNode.ownerDocument.createTextNode(oldNode.data);
+    var nextSibling = oldNode.nextSibling;
+    if (nextSibling && nextSibling.nodeType === wysihtml5.TEXT_NODE) {
+      // Concatenate text nodes
+      nextSibling.data = oldNode.data + nextSibling.data;
+    } else {
+      // \uFEFF = wysihtml5.INVISIBLE_SPACE (used as a hack in certain rich text editing situations)
+      var data = oldNode.data.replace(INVISIBLE_SPACE_REG_EXP, "");
+      return oldNode.ownerDocument.createTextNode(data);
+    } 
   }
   
   
