@@ -3,24 +3,19 @@ wysihtml5.dom.insertCSS = function(rules) {
   
   return {
     into: function(doc) {
-      var styleElement = doc.createElement("style");
+      var head         = doc.head || doc.getElementsByTagName("head")[0],
+          styleElement = doc.createElement("style");
+
       styleElement.type = "text/css";
-      
+
       if (styleElement.styleSheet) {
         styleElement.styleSheet.cssText = rules;
       } else {
         styleElement.appendChild(doc.createTextNode(rules));
       }
-      
-      var link = doc.querySelector("head link");
-      if (link) {
-        link.parentNode.insertBefore(styleElement, link);
-        return;
-      } else {
-        var head = doc.querySelector("head");
-        if (head) {
-          head.appendChild(styleElement);
-        }
+
+      if (head) {
+        head.appendChild(styleElement);
       }
     }
   };

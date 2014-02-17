@@ -17,7 +17,3 @@ test("replace()", function() {
     "I LOVE BOOBS"
   );
 });
-
-test("escapeHTML()", function() {
-  equal(wysihtml5.lang.string('&<>"').escapeHTML(), "&amp;&lt;&gt;&quot;");
-});

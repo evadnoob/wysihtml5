@@ -1,9 +1,10 @@
 (function(wysihtml5) {
   var dom                     = wysihtml5.dom,
+      DEFAULT_NODE_NAME       = "DIV",
       // Following elements are grouped
       // when the caret is within a H1 and the H4 is invoked, the H1 should turn into H4
       // instead of creating a H4 within a H1 which would result in semantically invalid html
-      BLOCK_ELEMENTS_GROUP    = ["H1", "H2", "H3", "H4", "H5", "H6", "P", "BLOCKQUOTE", "DIV"];
+      BLOCK_ELEMENTS_GROUP    = ["H1", "H2", "H3", "H4", "H5", "H6", "P", "BLOCKQUOTE", DEFAULT_NODE_NAME];
   
   /**
    * Remove similiar classes (based on classRegExp)
@@ -140,7 +141,7 @@
     composer.selection.surround(element);
     _removeLineBreakBeforeAndAfter(element);
     _removeLastChildIfLineBreak(element);
-    composer.selection.selectNode(element, wysihtml5.browser.displaysCaretInEmptyContentEditableCorrectly());
+    composer.selection.selectNode(element);
   }
 
   function _hasClasses(element) {
@@ -149,28 +150,26 @@
   
   wysihtml5.commands.formatBlock = {
     exec: function(composer, command, nodeName, className, classRegExp) {
-      var doc             = composer.doc,
-          blockElement    = this.state(composer, command, nodeName, className, classRegExp),
-          useLineBreaks   = composer.config.useLineBreaks,
-          defaultNodeName = useLineBreaks ? "DIV" : "P",
+      var doc          = composer.doc,
+          blockElement = this.state(composer, command, nodeName, className, classRegExp),
           selectedNode;
 
       nodeName = typeof(nodeName) === "string" ? nodeName.toUpperCase() : nodeName;
-      
+
       if (blockElement) {
         composer.selection.executeAndRestoreSimple(function() {
           if (classRegExp) {
             _removeClass(blockElement, classRegExp);
           }
           var hasClasses = _hasClasses(blockElement);
-          if (!hasClasses && (useLineBreaks || nodeName === "P")) {
+          if (!hasClasses && blockElement.nodeName === (nodeName || DEFAULT_NODE_NAME)) {
             // Insert a line break afterwards and beforewards when there are siblings
             // that are not of type line break or block element
             _addLineBreakBeforeAndAfter(blockElement);
             dom.replaceWithChildNodes(blockElement);
-          } else {
-            // Make sure that styling is kept by renaming the element to a <div> or <p> and copying over the class name
-            dom.renameElement(blockElement, nodeName === "P" ? "DIV" : defaultNodeName);
+          } else if (hasClasses) {
+            // Make sure that styling is kept by renaming the element to <div> and copying over the class name
+            dom.renameElement(blockElement, DEFAULT_NODE_NAME);
           }
         });
         return;
@@ -184,7 +183,7 @@
         });
 
         if (blockElement) {
-          composer.selection.executeAndRestore(function() {
+          composer.selection.executeAndRestoreSimple(function() {
             // Rename current block element to new block element and add class
             if (nodeName) {
               blockElement = dom.renameElement(blockElement, nodeName);
@@ -198,11 +197,11 @@
       }
 
       if (composer.commands.support(command)) {
-        _execCommand(doc, command, nodeName || defaultNodeName, className);
+        _execCommand(doc, command, nodeName || DEFAULT_NODE_NAME, className);
         return;
       }
 
-      blockElement = doc.createElement(nodeName || defaultNodeName);
+      blockElement = doc.createElement(nodeName || DEFAULT_NODE_NAME);
       if (className) {
         blockElement.className = className;
       }

@@ -40,6 +40,7 @@
       }
     }, 250);
 
+
     // --------- Focus & blur logic ---------
     dom.observe(focusBlurElement, "focus", function() {
       that.parent.fire("focus").fire("focus:composer");
@@ -55,13 +56,33 @@
       }
       that.parent.fire("blur").fire("blur:composer");
     });
+    
+    if (browser.isIos()) {
+      // When on iPad/iPhone/IPod after clicking outside of editor, the editor loses focus
+      // but the UI still acts as if the editor has focus (blinking caret and onscreen keyboard visible)
+      // We prevent that by focusing a temporary input element which immediately loses focus
+      dom.observe(element, "blur", function() {
+        var input = element.ownerDocument.createElement("input"),
+            originalScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            originalScrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
+        try {
+          that.selection.insertNode(input);
+        } catch(e) {
+          element.appendChild(input);
+        }
+        input.focus();
+        input.parentNode.removeChild(input);
+        
+        window.scrollTo(originalScrollLeft, originalScrollTop);
+      });
+    }
 
     // --------- Drag & Drop logic ---------
     dom.observe(element, "dragenter", function() {
       that.parent.fire("unset_placeholder");
     });
 
-    dom.observe(element, pasteEvents, function() {
+    dom.observe(element, pasteEvents, function(event) {
       setTimeout(function() {
         that.parent.fire("paste").fire("paste:composer");
       }, 0);
@@ -76,7 +97,7 @@
       that.parent.fire("keyup:composer");
     });
 
-    this.parent.on("paste:composer", function() {
+    this.parent.observe("paste:composer", function() {
       setTimeout(function() { that.parent.fire("newword:composer"); }, 0);
     });
 
@@ -147,24 +168,7 @@
         event.preventDefault();
       }
     });
-    
-    // --------- IE 8+9 focus the editor when the iframe is clicked (without actually firing the 'focus' event on the <body>) ---------
-    if (browser.hasIframeFocusIssue()) {
-      dom.observe(this.iframe, "focus", function() {
-        setTimeout(function() {
-          if (that.doc.querySelector(":focus") !== that.element) {
-            that.focus();
-          }
-        }, 0);
-      });
 
-      dom.observe(this.element, "blur", function() {
-        setTimeout(function() {
-          that.selection.getSelection().removeAllRanges();
-        }, 0);
-      });
-    }
-    
     // --------- Show url in tooltip when hovering links or images ---------
     var titlePrefixes = {
       IMG: "Image: ",

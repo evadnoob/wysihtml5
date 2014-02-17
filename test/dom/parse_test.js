@@ -211,7 +211,6 @@ if (wysihtml5.browser.supported()) {
   
   test("Test cleanup mode", function() {
     var rules = {
-      classes: { a: 1, c: 1 },
       tags: { span: true, div: true }
     };
     
@@ -223,18 +222,6 @@ if (wysihtml5.browser.supported()) {
     this.equal(
       this.sanitize("<span><p>foo</p></span>", rules, null, true),
       "foo"
-    );
-    
-    this.equal(
-      this.sanitize('<span class="a"></span><span class="a">foo</span>', rules, null, true),
-      '<span class="a">foo</span>',
-      "Empty 'span' is correctly removed"
-    );
-    
-    this.equal(
-      this.sanitize('<span><span class="a">1</span> <span class="b">2</span> <span class="c">3</span></span>', rules, null, true),
-      '<span class="a">1</span> 2 <span class="c">3</span>',
-      "Senseless 'span' is correctly removed"
     );
   });
   
@@ -623,24 +610,5 @@ if (wysihtml5.browser.supported()) {
     ok(
       this.sanitize('<a href="http://google.com/~foo"></a>', rules).indexOf("~") !== -1
     );
-  });
-  
-  test("Check concatenation of text nodes", function() {
-    var rules = {
-      tags: { span: 1, div: 1 }
-    };
-    
-    var tree = document.createElement("div");
-    tree.appendChild(document.createTextNode("foo "));
-    tree.appendChild(document.createTextNode("bar baz "));
-    tree.appendChild(document.createTextNode("bam! "));
-    
-    var span = document.createElement("span");
-    span.innerHTML = "boobs! hihihi ...";
-    tree.appendChild(span);
-    
-    var result = this.sanitize(tree, rules);
-    equal(result.childNodes.length, 2);
-    equal(result.innerHTML, "foo bar baz bam! <span>boobs! hihihi ...</span>");
   });
 }

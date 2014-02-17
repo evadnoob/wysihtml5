@@ -81,7 +81,7 @@
         });
       }
 
-      this.editor.on("change_view", function(view) {
+      this.editor.observe("change_view", function(view) {
         if (view === "composer" && !interval) {
           that.fromTextareaToComposer(true);
           startInterval();
@@ -91,7 +91,7 @@
         }
       });
 
-      this.editor.on("destroy:composer", stopInterval);
+      this.editor.observe("destroy:composer", stopInterval);
     }
   });
 })(wysihtml5);

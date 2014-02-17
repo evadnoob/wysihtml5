@@ -87,7 +87,7 @@
      * @example
      *    selection.selectNode(document.getElementById("my-image"));
      */
-    selectNode: function(node, avoidInvisibleSpace) {
+    selectNode: function(node) {
       var range           = rangy.createRange(this.doc),
           isElement       = node.nodeType === wysihtml5.ELEMENT_NODE,
           canHaveHTML     = "canHaveHTML" in node ? node.canHaveHTML : (node.nodeName !== "IMG"),
@@ -96,7 +96,7 @@
           displayStyle    = dom.getStyle("display").from(node),
           isBlockElement  = (displayStyle === "block" || displayStyle === "list-item");
 
-      if (isEmpty && isElement && canHaveHTML && !avoidInvisibleSpace) {
+      if (isEmpty && isElement && canHaveHTML) {
         // Make sure that caret is visible in node by inserting a zero width no breaking space
         try { node.innerHTML = wysihtml5.INVISIBLE_SPACE; } catch(e) {}
       }
@@ -150,12 +150,8 @@
           oldScrollTop          = restoreScrollPosition && body.scrollTop,
           oldScrollLeft         = restoreScrollPosition && body.scrollLeft,
           className             = "_wysihtml5-temp-placeholder",
-          placeholderHtml       = '<span class="' + className + '">' + wysihtml5.INVISIBLE_SPACE + '</span>',
+          placeholderHTML       = '<span class="' + className + '">' + wysihtml5.INVISIBLE_SPACE + '</span>',
           range                 = this.getRange(this.doc),
-          caretPlaceholder,
-          newCaretPlaceholder,
-          nextSibling,
-          node,
           newRange;
       
       // Nothing selected, execute and say goodbye
@@ -164,34 +160,21 @@
         return;
       }
       
-      if (wysihtml5.browser.hasInsertNodeIssue()) {
-        this.doc.execCommand("insertHTML", false, placeholderHtml);
-      } else {
-        node = range.createContextualFragment(placeholderHtml);
-        range.insertNode(node);
-      }
+      var node = range.createContextualFragment(placeholderHTML);
+      range.insertNode(node);
       
       // Make sure that a potential error doesn't cause our placeholder element to be left as a placeholder
       try {
         method(range.startContainer, range.endContainer);
-      } catch(e) {
-        setTimeout(function() { throw e; }, 0);
+      } catch(e3) {
+        setTimeout(function() { throw e3; }, 0);
       }
       
       caretPlaceholder = this.doc.querySelector("." + className);
       if (caretPlaceholder) {
         newRange = rangy.createRange(this.doc);
-        nextSibling = caretPlaceholder.nextSibling;
-        // Opera is so fucked up when you wanna set focus before a <br>
-        if (wysihtml5.browser.hasInsertNodeIssue() && nextSibling && nextSibling.nodeName === "BR") {
-          newCaretPlaceholder = this.doc.createTextNode(wysihtml5.INVISIBLE_SPACE);
-          dom.insert(newCaretPlaceholder).after(caretPlaceholder);
-          newRange.setStartBefore(newCaretPlaceholder);
-          newRange.setEndBefore(newCaretPlaceholder);
-        } else {
-          newRange.selectNode(caretPlaceholder);
-          newRange.deleteContents();
-        }
+        newRange.selectNode(caretPlaceholder);
+        newRange.deleteContents();
         this.setSelection(newRange);
       } else {
         // fallback for when all hell breaks loose
@@ -206,7 +189,7 @@
       // Remove it again, just to make sure that the placeholder is definitely out of the dom tree
       try {
         caretPlaceholder.parentNode.removeChild(caretPlaceholder);
-      } catch(e2) {}
+      } catch(e4) {}
     },
 
     /**
@@ -364,6 +347,7 @@
     _selectLine_MSIE: function() {
       var range       = this.doc.selection.createRange(),
           rangeTop    = range.boundingTop,
+          rangeHeight = range.boundingHeight,
           scrollWidth = this.doc.body.scrollWidth,
           rangeBottom,
           rangeEnd,

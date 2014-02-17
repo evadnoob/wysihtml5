@@ -25,8 +25,6 @@
  *    redo:composer
  *    beforecommand:composer
  *    aftercommand:composer
- *    enable:composer
- *    disable:composer
  *    change_view
  */
 (function(wysihtml5) {
@@ -50,16 +48,12 @@
     composerClassName:    "wysihtml5-editor",
     // Class name to add to the body when the wysihtml5 editor is supported
     bodyClassName:        "wysihtml5-supported",
-    // By default wysihtml5 will insert a <br> for line breaks, set this to false to use <p>
-    useLineBreaks:        true,
     // Array (or single string) of stylesheet urls to be loaded in the editor's iframe
     stylesheets:          [],
     // Placeholder text to use, defaults to the placeholder attribute on the textarea element
     placeholderText:      undef,
     // Whether the rich text editor should be rendered on touch devices (wysihtml5 >= 0.3.0 comes with basic support for iOS 5)
-    supportTouchDevices:  true,
-    // Whether senseless <span> elements (empty or without attributes) should be removed/replaced with their content
-    cleanUp:              true
+    supportTouchDevices:  true
   };
   
   wysihtml5.Editor = wysihtml5.lang.Dispatcher.extend(
@@ -88,7 +82,7 @@
         this._initParser();
       }
       
-      this.on("beforeload", function() {
+      this.observe("beforeload", function() {
         this.synchronizer = new wysihtml5.views.Synchronizer(this, this.textarea, this.composer);
         if (this.config.toolbar) {
           this.toolbar = new wysihtml5.toolbar.Toolbar(this, this.config.toolbar);
@@ -151,7 +145,7 @@
     },
     
     parse: function(htmlOrElement) {
-      var returnValue = this.config.parser(htmlOrElement, this.config.parserRules, this.composer.sandbox.getDocument(), this.config.cleanUp);
+      var returnValue = this.config.parser(htmlOrElement, this.config.parserRules, this.composer.sandbox.getDocument(), true);
       if (typeof(htmlOrElement) === "object") {
         wysihtml5.quirks.redraw(htmlOrElement);
       }
@@ -163,13 +157,20 @@
      *  - Observes for paste and drop
      */
     _initParser: function() {
-      this.on("paste:composer", function() {
+      this.observe("paste:composer", function() {
         var keepScrollPosition  = true,
             that                = this;
         that.composer.selection.executeAndRestore(function() {
           wysihtml5.quirks.cleanPastedHTML(that.composer.element);
           that.parse(that.composer.element);
         }, keepScrollPosition);
+      });
+      
+      this.observe("paste:textarea", function() {
+        var value   = this.textarea.getValue(),
+            newValue;
+        newValue = this.parse(value);
+        this.textarea.setValue(newValue);
       });
     }
   });

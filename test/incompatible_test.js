@@ -24,7 +24,7 @@ asyncTest("Basic test", function() {
   var oldInputsLength = document.getElementsByTagName("input").length;
   
   var editor = new wysihtml5.Editor(this.textareaElement);
-  editor.on("load", function() {
+  editor.observe("load", function() {
     ok(true, "'load' event correctly triggered");
     ok(!wysihtml5.dom.hasClass(document.body, "wysihtml5-supported"), "<body> didn't receive the 'wysihtml5-supported' class");
     ok(!editor.isCompatible(), "isCompatible returns false when rich text editing is not correctly supported in the current browser");
@@ -41,15 +41,15 @@ asyncTest("Basic test", function() {
     editor.clear();
     equal(that.textareaElement.value, "");
     
-    editor.on("focus", function() {
+    editor.observe("focus", function() {
       ok(true, "Generic 'focus' event fired");
     });
     
-    editor.on("focus:textarea", function() {
+    editor.observe("focus:textarea", function() {
       ok(true, "Specific 'focus:textarea' event fired");
     });
     
-    editor.on("focus:composer", function() {
+    editor.observe("focus:composer", function() {
       ok(false, "Specific 'focus:composer' event fired, and that's wrong, there shouldn't be a composer element/view");
     });
     

@@ -61,7 +61,7 @@
             event.stopPropagation();
           };
 
-      dom.observe(that.link, "click", function() {
+      dom.observe(that.link, "click", function(event) {
         if (dom.hasClass(that.link, CLASS_NAME_OPENED)) {
           setTimeout(function() { that.hide(); }, 0);
         }
@@ -73,7 +73,6 @@
           callbackWrapper(event);
         }
         if (keyCode === wysihtml5.ESCAPE_KEY) {
-          that.fire("cancel");
           that.hide();
         }
       });

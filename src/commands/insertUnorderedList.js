@@ -8,7 +8,7 @@ wysihtml5.commands.insertUnorderedList = {
         isEmpty,
         tempElement;
     
-    if (!list && !otherList && composer.commands.support(command)) {
+    if (composer.commands.support(command)) {
       doc.execCommand(command, false, null);
       return;
     }
@@ -18,27 +18,27 @@ wysihtml5.commands.insertUnorderedList = {
       // <ul><li>foo</li><li>bar</li></ul>
       // becomes:
       // foo<br>bar<br>
-      composer.selection.executeAndRestore(function() {
-        wysihtml5.dom.resolveList(list, composer.config.useLineBreaks);
+      composer.selection.executeAndRestoreSimple(function() {
+        wysihtml5.dom.resolveList(list);
       });
     } else if (otherList) {
       // Turn an ordered list into an unordered list
       // <ol><li>foo</li><li>bar</li></ol>
       // becomes:
       // <ul><li>foo</li><li>bar</li></ul>
-      composer.selection.executeAndRestore(function() {
+      composer.selection.executeAndRestoreSimple(function() {
         wysihtml5.dom.renameElement(otherList, "ul");
       });
     } else {
       // Create list
       composer.commands.exec("formatBlock", "div", tempClassName);
       tempElement = doc.querySelector("." + tempClassName);
-      isEmpty = tempElement.innerHTML === "" || tempElement.innerHTML === wysihtml5.INVISIBLE_SPACE || tempElement.innerHTML === "<br>";
-      composer.selection.executeAndRestore(function() {
+      isEmpty = tempElement.innerHTML === "" || tempElement.innerHTML === wysihtml5.INVISIBLE_SPACE;
+      composer.selection.executeAndRestoreSimple(function() {
         list = wysihtml5.dom.convertToList(tempElement, "ul");
       });
       if (isEmpty) {
-        composer.selection.selectNode(list.querySelector("li"), true);
+        composer.selection.selectNode(list.querySelector("li"));
       }
     }
   },

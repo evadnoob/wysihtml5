@@ -12,11 +12,7 @@ wysihtml5.browser = (function() {
       isOpera     = userAgent.indexOf("Opera/")       !== -1;
   
   function iosVersion(userAgent) {
-    return +((/ipad|iphone|ipod/.test(userAgent) && userAgent.match(/ os (\d+).+? like mac os x/)) || [, 0])[1];
-  }
-  
-  function androidVersion(userAgent) {
-    return +(userAgent.match(/android (\d+)/) || [, 0])[1];
+    return ((/ipad|iphone|ipod/.test(userAgent) && userAgent.match(/ os (\d+).+? like mac os x/)) || [, 0])[1];
   }
   
   return {
@@ -40,7 +36,8 @@ wysihtml5.browser = (function() {
           // document selector apis are only supported by IE 8+, Safari 4+, Chrome and Firefox 3.5+
           hasQuerySelectorSupport     = document.querySelector && document.querySelectorAll,
           // contentEditable is unusable in mobile browsers (tested iOS 4.2.2, Android 2.2, Opera Mobile, WebOS 3.05)
-          isIncompatibleMobileBrowser = (this.isIos() && iosVersion(userAgent) < 5) || (this.isAndroid() && androidVersion(userAgent) < 4) || userAgent.indexOf("opera mobi") !== -1 || userAgent.indexOf("hpwos/") !== -1;
+          isIncompatibleMobileBrowser = (this.isIos() && iosVersion(userAgent) < 5) || userAgent.indexOf("opera mobi") !== -1 || userAgent.indexOf("hpwos/") !== -1;
+      
       return hasContentEditableSupport
         && hasEditingApiSupport
         && hasQuerySelectorSupport
@@ -52,11 +49,8 @@ wysihtml5.browser = (function() {
     },
     
     isIos: function() {
-      return (/ipad|iphone|ipod/i).test(this.USER_AGENT);
-    },
-    
-    isAndroid: function() {
-      return this.USER_AGENT.indexOf("Android") !== -1;
+      var userAgent = this.USER_AGENT.toLowerCase();
+      return userAgent.indexOf("webkit") !== -1 && userAgent.indexOf("mobile") !== -1;
     },
     
     /**
@@ -86,7 +80,7 @@ wysihtml5.browser = (function() {
      * Firefox sometimes shows a huge caret in the beginning after focusing
      */
     displaysCaretInEmptyContentEditableCorrectly: function() {
-      return isIE;
+      return !isGecko;
     },
 
     /**
@@ -102,7 +96,7 @@ wysihtml5.browser = (function() {
      * Firefox on OSX navigates through history when hitting CMD + Arrow right/left
      */
     hasHistoryIssue: function() {
-      return isGecko && navigator.platform.substr(0, 3) === "Mac";
+      return isGecko;
     },
 
     /**
@@ -165,8 +159,8 @@ wysihtml5.browser = (function() {
          // When inserting unordered or ordered lists in Firefox, Chrome or Safari, the current selection or line gets
          // converted into a list (<ul><li>...</li></ul>, <ol><li>...</li></ol>)
          // IE and Opera act a bit different here as they convert the entire content of the current block element into a list
-        "insertUnorderedList":  isIE || isWebKit,
-        "insertOrderedList":    isIE || isWebKit
+        "insertUnorderedList":  isIE || isOpera || isWebKit,
+        "insertOrderedList":    isIE || isOpera || isWebKit
       };
       
       // Firefox throws errors for queryCommandSupported, so we have to build up our own object of supported commands
@@ -236,6 +230,14 @@ wysihtml5.browser = (function() {
      */
     canSelectImagesInContentEditable: function() {
       return isGecko || isIE || isOpera;
+    },
+
+    /**
+     * When the caret is in an empty list (<ul><li>|</li></ul>) which is the first child in an contentEditable container
+     * pressing backspace doesn't remove the entire list as done in other browsers
+     */
+    clearsListsInContentEditableCorrectly: function() {
+      return isGecko || isIE || isWebKit;
     },
 
     /**
@@ -325,35 +327,6 @@ wysihtml5.browser = (function() {
     
     hasUndoInContextMenu: function() {
       return isGecko || isChrome || isOpera;
-    },
-    
-    /**
-     * Opera sometimes doesn't insert the node at the right position when range.insertNode(someNode)
-     * is used (regardless if rangy or native)
-     * This especially happens when the caret is positioned right after a <br> because then
-     * insertNode() will insert the node right before the <br>
-     */
-    hasInsertNodeIssue: function() {
-      return isOpera;
-    },
-    
-    /**
-     * IE 8+9 don't fire the focus event of the <body> when the iframe gets focused (even though the caret gets set into the <body>)
-     */
-    hasIframeFocusIssue: function() {
-      return isIE;
-    },
-    
-    /**
-     * Chrome + Safari create invalid nested markup after paste
-     * 
-     *  <p>
-     *    foo
-     *    <p>bar</p> <!-- BOO! -->
-     *  </p>
-     */
-    createsNestedInvalidMarkupAfterPaste: function() {
-      return isWebKit;
     }
   };
 })();

@@ -40,6 +40,7 @@ JS_FILES = src/wysihtml5.js \
   src/quirks/clean_pasted_html.js \
   src/quirks/ensure_proper_clearing.js \
   src/quirks/get_correct_inner_html.js \
+  src/quirks/insert_line_break_on_return.js \
   src/quirks/redraw.js \
   src/selection/selection.js \
   src/selection/html_applier.js \
@@ -90,8 +91,7 @@ minify:
 	@@node build/minify.js ${JS_OUTPUT}
 	@@echo "Done."
 
-
-unittest:
+unittest: bundle
 	@@${OPEN} test/index.html
 
 clean:

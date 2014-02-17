@@ -121,11 +121,11 @@
       }
       
       this.editor
-        .on("newword:composer", function() {
+        .observe("newword:composer", function() {
           that.transact();
         })
         
-        .on("beforecommand:composer", function() {
+        .observe("beforecommand:composer", function() {
           that.transact();
         });
     },
